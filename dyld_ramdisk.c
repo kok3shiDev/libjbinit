@@ -303,7 +303,7 @@ int main(void)
     printf("#\n");
     printf("# bakera1n loader %s\n", VERSION);
     printf("#\n");
-    printf("# (c) 2023 bakera1n developer\n");
+    printf("# (c) 2023 kok3shiDev\n");
     printf("#==================\n");
     
     LOG("Checking rootfs");
