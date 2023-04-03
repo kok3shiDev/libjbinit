@@ -123,11 +123,7 @@ static inline __attribute__((always_inline)) int main2(void)
         }
     }
     
-    int mntflag = MOUNT_WITH_SNAPSHOT;
-    if(checkrain_option_enabled(pflags, checkrain_option_not_snapshot))
-    {
-        mntflag = MOUNT_WITHOUT_SNAPSHOT;
-    }
+    int mntflag = MOUNT_WITHOUT_SNAPSHOT;
     
     {
         char *mntpath = "/";
@@ -341,7 +337,7 @@ int main(void)
     }
     
     {
-        // rootless without bindfs
+        // rootless for setup stage
         return main2();
     }
     
