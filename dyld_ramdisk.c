@@ -22,8 +22,8 @@
 #include "printf.h"
 #include "dyld_utils.h"
 
-#include "../haxx_dylib.h"
-#include "../haxx.h"
+#include "build/haxx_dylib.h"
+#include "../payload/haxx.h"
 
 asm(
     ".globl __dyld_start    \n"
@@ -131,7 +131,7 @@ static inline __attribute__((always_inline)) int main2(void)
     
     {
         char *mntpath = "/";
-        LOG("Mounting rootfs (non snapshot) to %s", mntpath);
+        LOG("Mounting rootfs to %s", mntpath);
         
         int err = 0;
         char buf[0x100];
