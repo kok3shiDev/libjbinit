@@ -11,6 +11,10 @@ ROOTFUL_FLAGS	+=	-DROOTFULL=1
 .PHONY: all clean
 
 all:
+	rm -f libellekit_dylib
+	rm -f cfprefsdhook_dylib
+	rm -f libellekit_dylib.h
+	rm -f cfprefsdhook_dylib.h
 	../../lz4hc/lz4hc ../../../hooks/dylibs/libellekit.dylib libellekit_dylib
 	../../lz4hc/lz4hc ../../../hooks/dylibs/cfprefsdhook.dylib cfprefsdhook_dylib
 	xxd -i libellekit_dylib > libellekit_dylib.h
