@@ -222,7 +222,7 @@ static inline __attribute__((always_inline)) int main2(void)
     
     void *haxxBinBuf = NULL;
     uint32_t haxxBinLen = 0;
-    if(lz4dec_dyld(haxx_dylib, haxx_dylib_len, &haxxBinBuf, &haxxBinLen))
+    if(lz4dec_dyld(haxx, haxx_len, &haxxBinBuf, &haxxBinLen))
     {
         FATAL("Failed to lz4dec");
         goto fatal_err;
