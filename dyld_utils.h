@@ -13,12 +13,14 @@
 #define    SYS_unlink         10
 #define    SYS_getpid         20
 #define    SYS_execve         59
+#define    SYS_munmap         73
 #define    SYS_dup2           90
 #define    SYS_mkdir          136
 #define    SYS_mount          167
 #define    SYS_stat           188
 #define    SYS_mmap           197
 #define    SYS_lseek          199
+#define    SYS_sysctlbyname   274
 
 
 #define ROOTFS_IOS15        "/dev/disk0s1s1"
@@ -84,8 +86,8 @@
 #define checkrain_option_bind_mount         (1 << 1)
 #define checkrain_option_overlay            (1 << 2)
 #define checkrain_option_force_revert       (1 << 7) /* keep this at 7 */
-//#define checkrain_option_rootfull           (1 << 8)
-//#define checkrain_option_not_snapshot       (1 << 9)
+//#define checkrain_option_rootfull         (1 << 8)
+//#define checkrain_option_not_snapshot     (1 << 9)
 
 typedef uint32_t checkrain_option_t, *checkrain_option_p;
 

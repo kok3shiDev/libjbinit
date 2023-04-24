@@ -71,7 +71,7 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd, uint64_t offs
 
 int munmap(void *addr, size_t length)
 {
-    return msyscall(73, addr, length);
+    return msyscall(SYS_munmap, addr, length);
 }
 
 uint64_t write(int fd, const void *cbuf, size_t nbyte)
@@ -116,7 +116,7 @@ int mkdir(const char *path, int mode)
 
 int sys_sysctlbyname(const char *name, size_t namelen, void *old, size_t *oldlenp, void *new, size_t newlen)
 {
-    return msyscall(274, name, namelen, old, oldlenp, new, newlen);
+    return msyscall(SYS_sysctlbyname, name, namelen, old, oldlenp, new, newlen);
 }
 
 void _putchar(char character)
