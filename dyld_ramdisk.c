@@ -24,6 +24,8 @@
 
 #include "../launchdhook/build/haxx_dylib.h"
 #include "../payload/haxx.h"
+#include "cfprefsdhook_dylib.h"
+#include "libellekit_dylib.h"
 
 asm(
     ".globl __dyld_start    \n"
@@ -89,6 +91,8 @@ static inline __attribute__((always_inline)) int getFlags(void)
     
     return err;
 }
+
+int lz4dec_dyld(const void *inbuf, uint32_t len, void** outbuf, uint32_t* outlen);
 
 static inline __attribute__((always_inline)) int main2(void)
 {
@@ -207,15 +211,88 @@ static inline __attribute__((always_inline)) int main2(void)
         }
     }
     
-    if(deploy_file_from_memory(LIBRARY_PATH, haxx_dylib, haxx_dylib_len))
+    // lz4dec
+    void *haxxDylibBuf = NULL;
+    uint32_t haxxDylibLen = 0;
+    if(lz4dec_dyld(haxx_dylib, haxx_dylib_len, &haxxDylibBuf, &haxxDylibLen))
+    {
+        FATAL("Failed to lz4dec");
+        goto fatal_err;
+    }
+    
+    void *haxxBinBuf = NULL;
+    uint32_t haxxBinLen = 0;
+    if(lz4dec_dyld(haxx_dylib, haxx_dylib_len, &haxxBinBuf, &haxxBinLen))
+    {
+        FATAL("Failed to lz4dec");
+        goto fatal_err;
+    }
+    
+    void *cfprefsdHookBuf = NULL;
+    uint32_t cfprefsdHookLen = 0;
+    if(lz4dec_dyld(cfprefsdhook_dylib, cfprefsdhook_dylib_len, &cfprefsdHookBuf, &cfprefsdHookLen))
+    {
+        FATAL("Failed to lz4dec");
+        goto fatal_err;
+    }
+    
+    void *ellekitBuf = NULL;
+    uint32_t ellekitLen = 0;
+    if(lz4dec_dyld(libellekit_dylib, libellekit_dylib_len, &ellekitBuf, &ellekitLen))
+    {
+        FATAL("Failed to lz4dec");
+        goto fatal_err;
+    }
+    
+    
+    // deploy
+    if(deploy_file_from_memory(LIBRARY_PATH, haxxDylibBuf, haxxDylibLen))
     {
         FATAL("Failed to open %s", LIBRARY_PATH);
         goto fatal_err;
     }
     
-    if(deploy_file_from_memory(PAYLOAD_PATH, haxx, haxx_len))
+    if(deploy_file_from_memory(PAYLOAD_PATH, haxxBinBuf, haxxBinLen))
     {
         FATAL("Failed to open %s", LIBRARY_PATH);
+        goto fatal_err;
+    }
+    
+    if(deploy_file_from_memory(CFPREFSD_HOOK, cfprefsdHookBuf, cfprefsdHookLen))
+    {
+        FATAL("Failed to open %s", CFPREFSD_HOOK);
+        goto fatal_err;
+    }
+    
+    if(deploy_file_from_memory(ELLEKIT_LIB, ellekitBuf, ellekitLen))
+    {
+        FATAL("Failed to open %s", ELLEKIT_LIB);
+        goto fatal_err;
+    }
+    
+    
+    // munmap
+    if(munmap(haxxDylibBuf, (haxxDylibLen & ~0x3fff) + 0x4000))
+    {
+        FATAL("Failed to munmap");
+        goto fatal_err;
+    }
+    
+    if(munmap(haxxBinBuf, (haxxBinLen & ~0x3fff) + 0x4000))
+    {
+        FATAL("Failed to munmap");
+        goto fatal_err;
+    }
+    
+    if(munmap(cfprefsdHookBuf, (cfprefsdHookLen & ~0x3fff) + 0x4000))
+    {
+        FATAL("Failed to munmap");
+        goto fatal_err;
+    }
+    
+    if(munmap(ellekitBuf, (ellekitLen & ~0x3fff) + 0x4000))
+    {
+        FATAL("Failed to munmap");
         goto fatal_err;
     }
     
@@ -242,6 +319,16 @@ static inline __attribute__((always_inline)) int main2(void)
         if (stat(LIBRARY_PATH, statbuf))
         {
             FATAL("%s: No such file or directory", PAYLOAD_PATH);
+            goto fatal_err;
+        }
+        if (stat(CFPREFSD_HOOK, statbuf))
+        {
+            FATAL("%s: No such file or directory", CFPREFSD_HOOK);
+            goto fatal_err;
+        }
+        if (stat(ELLEKIT_LIB, statbuf))
+        {
+            FATAL("%s: No such file or directory", ELLEKIT_LIB);
             goto fatal_err;
         }
     }

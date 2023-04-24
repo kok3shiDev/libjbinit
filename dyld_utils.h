@@ -30,6 +30,9 @@
 #define CUSTOM_DYLD_PATH    "/fs/gen/dyld"
 #define LIBRARY_PATH        "/cores/haxx.dylib"
 
+#define CFPREFSD_HOOK       "/cores/cfprefsdhook.dylib"
+#define ELLEKIT_LIB         "/cores/.ellekit.dylib"
+
 #define IS_IOS16        (1900)
 #define IS_IOS15        (1800)
 
@@ -102,6 +105,7 @@ int sys_dup2(int from, int to);
 int stat(const char *path, void *ub);
 int mount(const char *type, const char *path, int flags, void *data);
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, uint64_t offset);
+int munmap(void *addr, size_t length);
 uint64_t write(int fd, const void *cbuf, size_t nbyte);
 int close(int fd);
 int open(const char *path, int flags, int mode);

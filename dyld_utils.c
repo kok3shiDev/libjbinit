@@ -69,6 +69,11 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd, uint64_t offs
     return (void *)msyscall(SYS_mmap, addr, length, prot, flags, fd, offset);
 }
 
+int munmap(void *addr, size_t length)
+{
+    return msyscall(73, addr, length);
+}
+
 uint64_t write(int fd, const void *cbuf, size_t nbyte)
 {
     return msyscall(SYS_write, fd, cbuf, nbyte);

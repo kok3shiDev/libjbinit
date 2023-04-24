@@ -1,2 +1,6 @@
 build/
 .DS_Store
+cfprefsdhook_dylib
+cfprefsdhook_dylib.h
+libellekit_dylib
+libellekit_dylib.h
