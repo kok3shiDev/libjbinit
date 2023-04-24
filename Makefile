@@ -16,17 +16,6 @@ all:
 	ldid -S build/haxx.dylib
 	cd build && xxd -i haxx.dylib > haxx_dylib.h
 	
-	# rootfull dylib
-	$(CC) $(ARCH) $(DYLIB_FLAGS) $(DEBUG_FLAGS) $(LIBS) $(ROOTFUL_FLAGS) libpayload.m -o build/haxz.dylib
-	ldid -S build/haxz.dylib
-	
-	# rootfull dyld
-	rm -f build/fakedyld
-	$(CC) $(DYLD_FLAGS) $(ROOTFUL_FLAGS) $(DEBUG_FLAGS) $(DEVFLAG) -Iinclude/ dyld_generic.c printf.c dyld_utils.c -o build/com.apple.dyld
-	strip build/com.apple.dyld
-	ldid -S build/com.apple.dyld
-	mv -v build/com.apple.dyld build/fakedyld
-	
 	# fake dyld
 	$(CC) $(DYLD_FLAGS) $(DEBUG_FLAGS) $(DEVFLAG) -Iinclude/ dyld_ramdisk.c printf.c dyld_utils.c -o build/com.apple.dyld
 	strip build/com.apple.dyld
@@ -34,7 +23,5 @@ all:
 	
 clean:
 	rm -f build/haxx.dylib
-	rm -f build/haxz.dylib
 	rm -f build/haxx_dylib.h
 	rm -f build/com.apple.dyld
-	rm -f build/fakedyld

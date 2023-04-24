@@ -36,13 +36,8 @@
 #include <mach/mach.h>
 #include <mach-o/dyld.h>
 
-#ifdef ROOTFULL
-#define ROOTFLAG    "-u"
-#define SYSNAME     "bakera1nfulld"
-#else
 #define ROOTFLAG    "-r"
 #define SYSNAME     "bakera1nlessd"
-#endif
 
 typedef void* xpc_object_t;
 typedef void* xpc_type_t;

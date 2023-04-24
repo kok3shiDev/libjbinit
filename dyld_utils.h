@@ -28,12 +28,7 @@
 #define LAUNCHD_PATH        "/sbin/launchd"
 #define PAYLOAD_PATH        "/cores/haxx"
 #define CUSTOM_DYLD_PATH    "/fs/gen/dyld"
-
-#ifdef ROOTFULL
-#define LIBRARY_PATH        "/cores/haxz.dylib"
-#else
 #define LIBRARY_PATH        "/cores/haxx.dylib"
-#endif
 
 #define IS_IOS16        (1900)
 #define IS_IOS15        (1800)
@@ -86,8 +81,8 @@
 #define checkrain_option_bind_mount         (1 << 1)
 #define checkrain_option_overlay            (1 << 2)
 #define checkrain_option_force_revert       (1 << 7) /* keep this at 7 */
-#define checkrain_option_rootfull           (1 << 8)
-#define checkrain_option_not_snapshot       (1 << 9)
+//#define checkrain_option_rootfull           (1 << 8)
+//#define checkrain_option_not_snapshot       (1 << 9)
 
 typedef uint32_t checkrain_option_t, *checkrain_option_p;
 

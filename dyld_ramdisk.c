@@ -103,7 +103,7 @@ static inline __attribute__((always_inline)) int main2(void)
         }
     }
     
-    LOG("Unlinking dyld");
+    LOG("Unlinking fakedyld");
     {
         unlink(CUSTOM_DYLD_PATH);
         if(!stat(CUSTOM_DYLD_PATH, statbuf))
@@ -124,10 +124,6 @@ static inline __attribute__((always_inline)) int main2(void)
     }
     
     int mntflag = MOUNT_WITH_SNAPSHOT;
-    if(checkrain_option_enabled(pflags, checkrain_option_not_snapshot))
-    {
-        mntflag = MOUNT_WITHOUT_SNAPSHOT;
-    }
     
     {
         char *mntpath = "/";
