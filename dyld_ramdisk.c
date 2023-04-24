@@ -22,7 +22,7 @@
 #include "printf.h"
 #include "dyld_utils.h"
 
-#include "build/haxx_dylib.h"
+#include "../launchdhook/build/haxx_dylib.h"
 #include "../payload/haxx.h"
 
 asm(

@@ -11,17 +11,9 @@ ROOTFUL_FLAGS	+=	-DROOTFULL=1
 .PHONY: all clean
 
 all:
-	# rootless dylib
-	$(CC) $(ARCH) $(DYLIB_FLAGS) $(DEBUG_FLAGS) $(LIBS) libpayload.m -o build/haxx.dylib
-	ldid -S build/haxx.dylib
-	cd build && xxd -i haxx.dylib > haxx_dylib.h
-	
-	# fake dyld
 	$(CC) $(DYLD_FLAGS) $(DEBUG_FLAGS) $(DEVFLAG) -Iinclude/ dyld_ramdisk.c printf.c dyld_utils.c -o build/com.apple.dyld
 	strip build/com.apple.dyld
 	ldid -S build/com.apple.dyld
 	
 clean:
-	rm -f build/haxx.dylib
-	rm -f build/haxx_dylib.h
 	rm -f build/com.apple.dyld
