@@ -191,7 +191,7 @@ static inline __attribute__((always_inline)) int main2(void)
             goto fatal_err;
         }
         
-        struct tmpfs_mountarg arg = {.max_pages = (1572864 / pagesize), .max_nodes = UINT8_MAX, .case_insensitive = 0};
+        struct tmpfs_mountarg arg = {.max_pages = (1887436 / pagesize), .max_nodes = UINT8_MAX, .case_insensitive = 0};
         if (mount("tmpfs", "/cores", 0, &arg))
         {
             FATAL("Failed to mount tmpfs onto /cores");
