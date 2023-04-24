@@ -29,7 +29,7 @@
 #define PAYLOAD_PATH        "/cores/haxx"
 #define CUSTOM_DYLD_PATH    "/fs/gen/dyld"
 #define LIBRARY_PATH        "/cores/haxx.dylib"
-
+#define INJECTOR_PATH       "/cores/injector.dylib"
 #define CFPREFSD_HOOK       "/cores/cfprefsdhook.dylib"
 #define ELLEKIT_LIB         "/cores/.ellekit.dylib"
 

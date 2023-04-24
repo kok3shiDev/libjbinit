@@ -23,6 +23,7 @@
 #include "dyld_utils.h"
 
 #include "../launchdhook/build/haxx_dylib.h"
+#include "../launchdhook/build/injector.h"
 #include "../payload/haxx.h"
 #include "cfprefsdhook_dylib.h"
 #include "libellekit_dylib.h"
@@ -236,6 +237,14 @@ static inline __attribute__((always_inline)) int main2(void)
         goto fatal_err;
     }
     
+    void *injectorBuf = NULL;
+    uint32_t injectorLen = 0;
+    if(lz4dec_dyld(injector, injector_len, &injectorBuf, &injectorLen))
+    {
+        FATAL("Failed to lz4dec");
+        goto fatal_err;
+    }
+    
     void *ellekitBuf = NULL;
     uint32_t ellekitLen = 0;
     if(lz4dec_dyld(libellekit_dylib, libellekit_dylib_len, &ellekitBuf, &ellekitLen))
@@ -264,6 +273,12 @@ static inline __attribute__((always_inline)) int main2(void)
         goto fatal_err;
     }
     
+    if(deploy_file_from_memory(INJECTOR_PATH, injectorBuf, injectorLen))
+    {
+        FATAL("Failed to open %s", INJECTOR_PATH);
+        goto fatal_err;
+    }
+    
     if(deploy_file_from_memory(ELLEKIT_LIB, ellekitBuf, ellekitLen))
     {
         FATAL("Failed to open %s", ELLEKIT_LIB);
@@ -285,6 +300,12 @@ static inline __attribute__((always_inline)) int main2(void)
     }
     
     if(munmap(cfprefsdHookBuf, (cfprefsdHookLen & ~0x3fff) + 0x4000))
+    {
+        FATAL("Failed to munmap");
+        goto fatal_err;
+    }
+    
+    if(munmap(injectorBuf, (injectorLen & ~0x3fff) + 0x4000))
     {
         FATAL("Failed to munmap");
         goto fatal_err;
