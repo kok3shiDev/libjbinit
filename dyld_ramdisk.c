@@ -405,9 +405,15 @@ int main(void)
     
     printf("#==================\n");
     printf("#\n");
-    printf("# bakera1n loader %s\n", VERSION);
+    printf("# bakera1n loader (c) 2023 kok3shiDev\n");
     printf("#\n");
-    printf("# (c) 2023 kok3shiDev\n");
+    printf("# BUILD_TAG: %s\n", VERSION);
+#ifdef DEVBUILD
+    printf("# BUILD_STYLE: %s\n", "DEVELOPMENT");
+#else
+    printf("# BUILD_STYLE: %s\n", "RELEASE");
+#endif
+    printf("#\n");
     printf("#==================\n");
     
     LOG("Checking rootfs");
