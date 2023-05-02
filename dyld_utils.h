@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include <bakera1n/path.h>
+
 // syscalls
 #define    SYS_exit           1
 #define    SYS_fork           2
@@ -26,14 +28,6 @@
 #define ROOTFS_IOS15        "/dev/disk0s1s1"
 #define ROOTFS_IOS16        "/dev/disk1s1"
 #define ROOTFS_RAMDISK      "/dev/md0"
-
-#define LAUNCHD_PATH        "/sbin/launchd"
-#define PAYLOAD_PATH        "/cores/haxx"
-#define CUSTOM_DYLD_PATH    "/fs/gen/dyld"
-#define LIBRARY_PATH        "/cores/haxx.dylib"
-#define INJECTOR_PATH       "/cores/injector.dylib"
-#define CFPREFSD_HOOK       "/cores/cfprefsdhook.dylib"
-#define ELLEKIT_LIB         "/cores/.ellekit.dylib"
 
 #define IS_IOS16        (1900)
 #define IS_IOS15        (1800)

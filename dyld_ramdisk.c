@@ -210,6 +210,37 @@ static inline __attribute__((always_inline)) int main2(void)
             FATAL("Failed to stat directory %s", "/cores/binpack");
             goto fatal_err;
         }
+        
+        if(mkdir("/cores/usr", 0755))
+        {
+            FATAL("Failed to make directory %s", "/cores/usr");
+            goto fatal_err;
+        }
+        if (stat("/cores/usr", statbuf))
+        {
+            FATAL("Failed to stat directory %s", "/cores/usr");
+            goto fatal_err;
+        }
+        if(mkdir("/cores/usr/lib", 0755))
+        {
+            FATAL("Failed to make directory %s", "/cores/usr/lib");
+            goto fatal_err;
+        }
+        if (stat("/cores/usr/lib", statbuf))
+        {
+            FATAL("Failed to stat directory %s", "/cores/usr/lib");
+            goto fatal_err;
+        }
+        if(mkdir("/cores/usr/libexec", 0755))
+        {
+            FATAL("Failed to make directory %s", "/cores/usr/libexec");
+            goto fatal_err;
+        }
+        if (stat("/cores/usr/libexec", statbuf))
+        {
+            FATAL("Failed to stat directory %s", "/cores/usr/libexec");
+            goto fatal_err;
+        }
     }
     
     // lz4dec
@@ -255,33 +286,33 @@ static inline __attribute__((always_inline)) int main2(void)
     
     
     // deploy
-    if(deploy_file_from_memory(LIBRARY_PATH, haxxDylibBuf, haxxDylibLen))
+    if(deploy_file_from_memory(BR_LIBRARY_PATH, haxxDylibBuf, haxxDylibLen))
     {
-        FATAL("Failed to open %s", LIBRARY_PATH);
+        FATAL("Failed to open %s", BR_LIBRARY_PATH);
         goto fatal_err;
     }
     
-    if(deploy_file_from_memory(PAYLOAD_PATH, haxxBinBuf, haxxBinLen))
+    if(deploy_file_from_memory(BR_PAYLOAD_PATH, haxxBinBuf, haxxBinLen))
     {
-        FATAL("Failed to open %s", LIBRARY_PATH);
+        FATAL("Failed to open %s", BR_PAYLOAD_PATH);
         goto fatal_err;
     }
     
-    if(deploy_file_from_memory(CFPREFSD_HOOK, cfprefsdHookBuf, cfprefsdHookLen))
+    if(deploy_file_from_memory(BR_CFPREFSD_HOOK, cfprefsdHookBuf, cfprefsdHookLen))
     {
-        FATAL("Failed to open %s", CFPREFSD_HOOK);
+        FATAL("Failed to open %s", BR_CFPREFSD_HOOK);
         goto fatal_err;
     }
     
-    if(deploy_file_from_memory(INJECTOR_PATH, injectorBuf, injectorLen))
+    if(deploy_file_from_memory(BR_INJECTOR_PATH, injectorBuf, injectorLen))
     {
-        FATAL("Failed to open %s", INJECTOR_PATH);
+        FATAL("Failed to open %s", BR_INJECTOR_PATH);
         goto fatal_err;
     }
     
-    if(deploy_file_from_memory(ELLEKIT_LIB, ellekitBuf, ellekitLen))
+    if(deploy_file_from_memory(BR_ELLEKIT_LIB, ellekitBuf, ellekitLen))
     {
-        FATAL("Failed to open %s", ELLEKIT_LIB);
+        FATAL("Failed to open %s", BR_ELLEKIT_LIB);
         goto fatal_err;
     }
     
@@ -332,24 +363,24 @@ static inline __attribute__((always_inline)) int main2(void)
             FATAL("%s: No such file or directory", LAUNCHD_PATH);
             goto fatal_err;
         }
-        if (stat(PAYLOAD_PATH, statbuf))
+        if (stat(BR_PAYLOAD_PATH, statbuf))
         {
-            FATAL("%s: No such file or directory", PAYLOAD_PATH);
+            FATAL("%s: No such file or directory", BR_PAYLOAD_PATH);
             goto fatal_err;
         }
-        if (stat(LIBRARY_PATH, statbuf))
+        if (stat(BR_LIBRARY_PATH, statbuf))
         {
-            FATAL("%s: No such file or directory", PAYLOAD_PATH);
+            FATAL("%s: No such file or directory", BR_LIBRARY_PATH);
             goto fatal_err;
         }
-        if (stat(CFPREFSD_HOOK, statbuf))
+        if (stat(BR_CFPREFSD_HOOK, statbuf))
         {
-            FATAL("%s: No such file or directory", CFPREFSD_HOOK);
+            FATAL("%s: No such file or directory", BR_CFPREFSD_HOOK);
             goto fatal_err;
         }
-        if (stat(ELLEKIT_LIB, statbuf))
+        if (stat(BR_ELLEKIT_LIB, statbuf))
         {
-            FATAL("%s: No such file or directory", ELLEKIT_LIB);
+            FATAL("%s: No such file or directory", BR_ELLEKIT_LIB);
             goto fatal_err;
         }
     }
@@ -374,7 +405,7 @@ static inline __attribute__((always_inline)) int main2(void)
         envp[1] = NULL;
         
         char dyld_insert_libs[] = "DYLD_INSERT_LIBRARIES";
-        char dylibs[] = LIBRARY_PATH;
+        char dylibs[] = BR_LIBRARY_PATH;
         uint8_t eqBuf = 0x3D;
         
         memcpy(strbuf, dyld_insert_libs, sizeof(dyld_insert_libs));
