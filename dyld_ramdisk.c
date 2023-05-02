@@ -200,14 +200,14 @@ static inline __attribute__((always_inline)) int main2(void)
     }
     
     {
-        if(mkdir("/cores/binpack", 0755))
+        if(mkdir(BR_OVERLAY_MOUNT_POINT, 0755))
         {
-            FATAL("Failed to make directory %s", "/cores/binpack");
+            FATAL("Failed to make directory %s", BR_OVERLAY_MOUNT_POINT);
             goto fatal_err;
         }
-        if (stat("/cores/binpack", statbuf))
+        if (stat(BR_OVERLAY_MOUNT_POINT, statbuf))
         {
-            FATAL("Failed to stat directory %s", "/cores/binpack");
+            FATAL("Failed to stat directory %s", BR_OVERLAY_MOUNT_POINT);
             goto fatal_err;
         }
         
