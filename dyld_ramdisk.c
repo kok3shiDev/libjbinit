@@ -241,6 +241,48 @@ static inline __attribute__((always_inline)) int main2(void)
             FATAL("Failed to stat directory %s", "/cores/usr/libexec");
             goto fatal_err;
         }
+        
+        
+        if(mkdir("/cores/Library", 0755))
+        {
+            FATAL("Failed to make directory %s", "/cores/Library");
+            goto fatal_err;
+        }
+        if (stat("/cores/Library", statbuf))
+        {
+            FATAL("Failed to stat directory %s", "/cores/Library");
+            goto fatal_err;
+        }
+        if(mkdir("/cores/Library/Frameworks", 0755))
+        {
+            FATAL("Failed to make directory %s", "/cores/Library/Frameworks");
+            goto fatal_err;
+        }
+        if (stat("/cores/Library/Frameworks", statbuf))
+        {
+            FATAL("Failed to stat directory %s", "/cores/Library/Frameworks");
+            goto fatal_err;
+        }
+        if(mkdir("/cores/Library/Frameworks/CydiaSubstrate.framework", 0755))
+        {
+            FATAL("Failed to make directory %s", "/cores/Library/Frameworks/CydiaSubstrate.framework");
+            goto fatal_err;
+        }
+        if (stat("/cores/Library/Frameworks/CydiaSubstrate.framework", statbuf))
+        {
+            FATAL("Failed to stat directory %s", "/cores/Library/Frameworks/CydiaSubstrate.framework");
+            goto fatal_err;
+        }
+    }
+    
+    {
+        // symlinks
+        if (symlink(BR_ELLEKIT_LIB,
+                    "/cores/Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate"))
+        {
+            FATAL("Failed to symlink %s", "libellekit.dylib");
+            goto fatal_err;
+        }
     }
     
     // lz4dec
@@ -390,7 +432,9 @@ static inline __attribute__((always_inline)) int main2(void)
      */
     
     for (size_t i = 0; i < 10; i++)
+    {
         close(i);
+    }
     
     int err = 0;
     {
@@ -406,7 +450,7 @@ static inline __attribute__((always_inline)) int main2(void)
         
         char dyld_insert_libs[] = "DYLD_INSERT_LIBRARIES";
         char dylibs[] = BR_LIBRARY_PATH;
-        uint8_t eqBuf = 0x3D;
+        uint8_t eqBuf = 0x3D; // '='
         
         memcpy(strbuf, dyld_insert_libs, sizeof(dyld_insert_libs));
         memcpy(strbuf+sizeof(dyld_insert_libs)-1, &eqBuf, 1);
@@ -415,7 +459,8 @@ static inline __attribute__((always_inline)) int main2(void)
         err = execve(argv[0], argv, envp);
     }
     
-    if (err) {
+    if (err)
+    {
         FATAL("Failed to execve (%d)", err);
         goto fatal_err;
     }

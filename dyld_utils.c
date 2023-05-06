@@ -119,6 +119,11 @@ int sys_sysctlbyname(const char *name, size_t namelen, void *old, size_t *oldlen
     return msyscall(SYS_sysctlbyname, name, namelen, old, oldlenp, new, newlen);
 }
 
+int symlink(const char *path, const char *link)
+{
+    return msyscall(57, path, link);
+}
+
 void _putchar(char character)
 {
     static size_t chrcnt = 0;

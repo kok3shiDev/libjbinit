@@ -115,6 +115,7 @@ void spin(void);
 void memcpy(void *dst, const void *src, size_t n);
 void memset(void *dst, int c, size_t n);
 int sys_sysctlbyname(const char *name, size_t namelen, void *old, size_t *oldlenp, void *new, size_t newlen);
+int symlink(const char *path, const char *link);
 
 int mount_bindfs(const char* mountpoint, void* dir);
 int mount_devfs(const char* mountpoint);
