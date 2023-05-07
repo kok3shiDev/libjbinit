@@ -192,7 +192,7 @@ static inline __attribute__((always_inline)) int main2(void)
         }
         
         struct tmpfs_mountarg arg = {.max_pages = (1887436 / pagesize), .max_nodes = UINT8_MAX, .case_insensitive = 0};
-        if (mount("tmpfs", "/cores", 0, &arg))
+        if (mount("tmpfs", BR_PREFIX, 0, &arg))
         {
             FATAL("Failed to mount tmpfs onto /cores");
             goto fatal_err;
@@ -211,64 +211,64 @@ static inline __attribute__((always_inline)) int main2(void)
             goto fatal_err;
         }
         
-        if(mkdir("/cores/usr", 0755))
+        if(mkdir(BR_PREFIX"/usr", 0755))
         {
             FATAL("Failed to make directory %s", "/cores/usr");
             goto fatal_err;
         }
-        if (stat("/cores/usr", statbuf))
+        if (stat(BR_PREFIX"/usr", statbuf))
         {
             FATAL("Failed to stat directory %s", "/cores/usr");
             goto fatal_err;
         }
-        if(mkdir("/cores/usr/lib", 0755))
+        if(mkdir(BR_PREFIX"/usr/lib", 0755))
         {
             FATAL("Failed to make directory %s", "/cores/usr/lib");
             goto fatal_err;
         }
-        if (stat("/cores/usr/lib", statbuf))
+        if (stat(BR_PREFIX"/usr/lib", statbuf))
         {
             FATAL("Failed to stat directory %s", "/cores/usr/lib");
             goto fatal_err;
         }
-        if(mkdir("/cores/usr/libexec", 0755))
+        if(mkdir(BR_PREFIX"/usr/libexec", 0755))
         {
             FATAL("Failed to make directory %s", "/cores/usr/libexec");
             goto fatal_err;
         }
-        if (stat("/cores/usr/libexec", statbuf))
+        if (stat(BR_PREFIX"/usr/libexec", statbuf))
         {
             FATAL("Failed to stat directory %s", "/cores/usr/libexec");
             goto fatal_err;
         }
         
         
-        if(mkdir("/cores/Library", 0755))
+        if(mkdir(BR_PREFIX"/Library", 0755))
         {
             FATAL("Failed to make directory %s", "/cores/Library");
             goto fatal_err;
         }
-        if (stat("/cores/Library", statbuf))
+        if (stat(BR_PREFIX"/Library", statbuf))
         {
             FATAL("Failed to stat directory %s", "/cores/Library");
             goto fatal_err;
         }
-        if(mkdir("/cores/Library/Frameworks", 0755))
+        if(mkdir(BR_PREFIX"/Library/Frameworks", 0755))
         {
             FATAL("Failed to make directory %s", "/cores/Library/Frameworks");
             goto fatal_err;
         }
-        if (stat("/cores/Library/Frameworks", statbuf))
+        if (stat(BR_PREFIX"/Library/Frameworks", statbuf))
         {
             FATAL("Failed to stat directory %s", "/cores/Library/Frameworks");
             goto fatal_err;
         }
-        if(mkdir("/cores/Library/Frameworks/CydiaSubstrate.framework", 0755))
+        if(mkdir(BR_PREFIX"/Library/Frameworks/CydiaSubstrate.framework", 0755))
         {
             FATAL("Failed to make directory %s", "/cores/Library/Frameworks/CydiaSubstrate.framework");
             goto fatal_err;
         }
-        if (stat("/cores/Library/Frameworks/CydiaSubstrate.framework", statbuf))
+        if (stat(BR_PREFIX"/Library/Frameworks/CydiaSubstrate.framework", statbuf))
         {
             FATAL("Failed to stat directory %s", "/cores/Library/Frameworks/CydiaSubstrate.framework");
             goto fatal_err;
@@ -278,7 +278,7 @@ static inline __attribute__((always_inline)) int main2(void)
     {
         // symlinks
         if (symlink(BR_ELLEKIT_LIB,
-                    "/cores/Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate"))
+                    BR_PREFIX"/Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate"))
         {
             FATAL("Failed to symlink %s", "libellekit.dylib");
             goto fatal_err;
