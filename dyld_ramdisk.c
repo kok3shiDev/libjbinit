@@ -100,7 +100,7 @@ static inline __attribute__((always_inline)) int main2(void)
 {
     
     int use_cfprefsd_hook = 1;
-    if(!checkrain_option_enabled(checkrain_option_no_cfprefsd_hook, pflags))
+    if(checkrain_option_enabled(checkrain_option_no_cfprefsd_hook, pflags))
     {
         use_cfprefsd_hook = 0;
     }
