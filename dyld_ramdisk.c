@@ -23,6 +23,7 @@
 #include "dyld_utils.h"
 
 #include "../launchdhook/build/haxx_dylib.h"
+#include "../launchdhook/build/haxxinjector_dylib.h"
 #include "../launchdhook/build/injector.h"
 #include "../payload/haxx.h"
 #include "cfprefsdhook_dylib.h"
@@ -97,6 +98,14 @@ int lz4dec_dyld(const void *inbuf, uint32_t len, void** outbuf, uint32_t* outlen
 
 static inline __attribute__((always_inline)) int main2(void)
 {
+    
+    int use_cfprefsd_hook = 1;
+    if(!checkrain_option_enabled(checkrain_option_no_cfprefsd_hook, pflags))
+    {
+        use_cfprefsd_hook = 0;
+    }
+    
+    LOG("use_cfprefsd_hook: %d", use_cfprefsd_hook);
     
     LOG("Remounting fs");
     {
@@ -263,18 +272,23 @@ static inline __attribute__((always_inline)) int main2(void)
             FATAL("Failed to stat directory %s", "/cores/Library/Frameworks");
             goto fatal_err;
         }
-        if(mkdir(BR_PREFIX"/Library/Frameworks/CydiaSubstrate.framework", 0755))
+        
+        if(use_cfprefsd_hook)
         {
-            FATAL("Failed to make directory %s", "/cores/Library/Frameworks/CydiaSubstrate.framework");
-            goto fatal_err;
-        }
-        if (stat(BR_PREFIX"/Library/Frameworks/CydiaSubstrate.framework", statbuf))
-        {
-            FATAL("Failed to stat directory %s", "/cores/Library/Frameworks/CydiaSubstrate.framework");
-            goto fatal_err;
+            if(mkdir(BR_PREFIX"/Library/Frameworks/CydiaSubstrate.framework", 0755))
+            {
+                FATAL("Failed to make directory %s", "/cores/Library/Frameworks/CydiaSubstrate.framework");
+                goto fatal_err;
+            }
+            if (stat(BR_PREFIX"/Library/Frameworks/CydiaSubstrate.framework", statbuf))
+            {
+                FATAL("Failed to stat directory %s", "/cores/Library/Frameworks/CydiaSubstrate.framework");
+                goto fatal_err;
+            }
         }
     }
     
+    if(use_cfprefsd_hook)
     {
         // symlinks
         if (symlink(BR_ELLEKIT_LIB,
@@ -284,6 +298,7 @@ static inline __attribute__((always_inline)) int main2(void)
             goto fatal_err;
         }
     }
+    
     
     // lz4dec
     void *haxxDylibBuf = NULL;
@@ -302,28 +317,40 @@ static inline __attribute__((always_inline)) int main2(void)
         goto fatal_err;
     }
     
-    void *cfprefsdHookBuf = NULL;
-    uint32_t cfprefsdHookLen = 0;
-    if(lz4dec_dyld(cfprefsdhook_dylib, cfprefsdhook_dylib_len, &cfprefsdHookBuf, &cfprefsdHookLen))
-    {
-        FATAL("Failed to lz4dec");
-        goto fatal_err;
-    }
+    void *haxxInjectorDylibBuf      = NULL;
+    void *cfprefsdHookBuf           = NULL;
+    void *injectorBuf               = NULL;
+    void *ellekitBuf                = NULL;
+    uint32_t haxxInjectorDylibLen   = 0;
+    uint32_t cfprefsdHookLen        = 0;
+    uint32_t injectorLen            = 0;
+    uint32_t ellekitLen             = 0;
     
-    void *injectorBuf = NULL;
-    uint32_t injectorLen = 0;
-    if(lz4dec_dyld(injector, injector_len, &injectorBuf, &injectorLen))
+    if(use_cfprefsd_hook)
     {
-        FATAL("Failed to lz4dec");
-        goto fatal_err;
-    }
-    
-    void *ellekitBuf = NULL;
-    uint32_t ellekitLen = 0;
-    if(lz4dec_dyld(libellekit_dylib, libellekit_dylib_len, &ellekitBuf, &ellekitLen))
-    {
-        FATAL("Failed to lz4dec");
-        goto fatal_err;
+        if(lz4dec_dyld(haxxinjector_dylib, haxxinjector_dylib_len, &haxxInjectorDylibBuf, &haxxInjectorDylibLen))
+        {
+            FATAL("Failed to lz4dec");
+            goto fatal_err;
+        }
+        
+        if(lz4dec_dyld(cfprefsdhook_dylib, cfprefsdhook_dylib_len, &cfprefsdHookBuf, &cfprefsdHookLen))
+        {
+            FATAL("Failed to lz4dec");
+            goto fatal_err;
+        }
+        
+        if(lz4dec_dyld(injector, injector_len, &injectorBuf, &injectorLen))
+        {
+            FATAL("Failed to lz4dec");
+            goto fatal_err;
+        }
+        
+        if(lz4dec_dyld(libellekit_dylib, libellekit_dylib_len, &ellekitBuf, &ellekitLen))
+        {
+            FATAL("Failed to lz4dec");
+            goto fatal_err;
+        }
     }
     
     
@@ -340,22 +367,31 @@ static inline __attribute__((always_inline)) int main2(void)
         goto fatal_err;
     }
     
-    if(deploy_file_from_memory(BR_CFPREFSD_HOOK, cfprefsdHookBuf, cfprefsdHookLen))
+    if(use_cfprefsd_hook)
     {
-        FATAL("Failed to open %s", BR_CFPREFSD_HOOK);
-        goto fatal_err;
-    }
-    
-    if(deploy_file_from_memory(BR_INJECTOR_PATH, injectorBuf, injectorLen))
-    {
-        FATAL("Failed to open %s", BR_INJECTOR_PATH);
-        goto fatal_err;
-    }
-    
-    if(deploy_file_from_memory(BR_ELLEKIT_LIB, ellekitBuf, ellekitLen))
-    {
-        FATAL("Failed to open %s", BR_ELLEKIT_LIB);
-        goto fatal_err;
+        if(deploy_file_from_memory(BR_BRINJECTOR_PATH, haxxInjectorDylibBuf, haxxInjectorDylibLen))
+        {
+            FATAL("Failed to open %s", BR_BRINJECTOR_PATH);
+            goto fatal_err;
+        }
+        
+        if(deploy_file_from_memory(BR_CFPREFSD_HOOK, cfprefsdHookBuf, cfprefsdHookLen))
+        {
+            FATAL("Failed to open %s", BR_CFPREFSD_HOOK);
+            goto fatal_err;
+        }
+        
+        if(deploy_file_from_memory(BR_INJECTOR_PATH, injectorBuf, injectorLen))
+        {
+            FATAL("Failed to open %s", BR_INJECTOR_PATH);
+            goto fatal_err;
+        }
+        
+        if(deploy_file_from_memory(BR_ELLEKIT_LIB, ellekitBuf, ellekitLen))
+        {
+            FATAL("Failed to open %s", BR_ELLEKIT_LIB);
+            goto fatal_err;
+        }
     }
     
     
@@ -372,23 +408,33 @@ static inline __attribute__((always_inline)) int main2(void)
         goto fatal_err;
     }
     
-    if(munmap(cfprefsdHookBuf, (cfprefsdHookLen & ~0x3fff) + 0x4000))
+    if(use_cfprefsd_hook)
     {
-        FATAL("Failed to munmap");
-        goto fatal_err;
+        if(munmap(haxxInjectorDylibBuf, (haxxInjectorDylibLen & ~0x3fff) + 0x4000))
+        {
+            FATAL("Failed to munmap");
+            goto fatal_err;
+        }
+        
+        if(munmap(cfprefsdHookBuf, (cfprefsdHookLen & ~0x3fff) + 0x4000))
+        {
+            FATAL("Failed to munmap");
+            goto fatal_err;
+        }
+        
+        if(munmap(injectorBuf, (injectorLen & ~0x3fff) + 0x4000))
+        {
+            FATAL("Failed to munmap");
+            goto fatal_err;
+        }
+        
+        if(munmap(ellekitBuf, (ellekitLen & ~0x3fff) + 0x4000))
+        {
+            FATAL("Failed to munmap");
+            goto fatal_err;
+        }
     }
     
-    if(munmap(injectorBuf, (injectorLen & ~0x3fff) + 0x4000))
-    {
-        FATAL("Failed to munmap");
-        goto fatal_err;
-    }
-    
-    if(munmap(ellekitBuf, (ellekitLen & ~0x3fff) + 0x4000))
-    {
-        FATAL("Failed to munmap");
-        goto fatal_err;
-    }
     
     void *data = mmap(NULL, 0x4000, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     DEVLOG("data: 0x%016llx", data);
@@ -415,15 +461,29 @@ static inline __attribute__((always_inline)) int main2(void)
             FATAL("%s: No such file or directory", BR_LIBRARY_PATH);
             goto fatal_err;
         }
-        if (stat(BR_CFPREFSD_HOOK, statbuf))
+        
+        if(use_cfprefsd_hook)
         {
-            FATAL("%s: No such file or directory", BR_CFPREFSD_HOOK);
-            goto fatal_err;
-        }
-        if (stat(BR_ELLEKIT_LIB, statbuf))
-        {
-            FATAL("%s: No such file or directory", BR_ELLEKIT_LIB);
-            goto fatal_err;
+            if (stat(BR_BRINJECTOR_PATH, statbuf))
+            {
+                FATAL("%s: No such file or directory", BR_BRINJECTOR_PATH);
+                goto fatal_err;
+            }
+            if (stat(BR_INJECTOR_PATH, statbuf))
+            {
+                FATAL("%s: No such file or directory", BR_INJECTOR_PATH);
+                goto fatal_err;
+            }
+            if (stat(BR_CFPREFSD_HOOK, statbuf))
+            {
+                FATAL("%s: No such file or directory", BR_CFPREFSD_HOOK);
+                goto fatal_err;
+            }
+            if (stat(BR_ELLEKIT_LIB, statbuf))
+            {
+                FATAL("%s: No such file or directory", BR_ELLEKIT_LIB);
+                goto fatal_err;
+            }
         }
     }
     
@@ -435,6 +495,7 @@ static inline __attribute__((always_inline)) int main2(void)
     {
         close(i);
     }
+    
     
     int err = 0;
     {
@@ -448,16 +509,24 @@ static inline __attribute__((always_inline)) int main2(void)
         envp[0] = strbuf;
         envp[1] = NULL;
         
-        char dyld_insert_libs[] = "DYLD_INSERT_LIBRARIES";
-        char dylibs[] = BR_LIBRARY_PATH;
-        uint8_t eqBuf = 0x3D; // '='
+        char dyld_insert_libs[]  = "DYLD_INSERT_LIBRARIES";
+        char launchdhook_dylib[] = BR_LIBRARY_PATH;
+        char brinjector_dylib[]  = BR_BRINJECTOR_PATH;
+        uint8_t eqBuf    = 0x3D; // '='
+        uint8_t colonBuf = 0x3A; // ':'
         
         memcpy(strbuf, dyld_insert_libs, sizeof(dyld_insert_libs));
-        memcpy(strbuf+sizeof(dyld_insert_libs)-1, &eqBuf, 1);
-        memcpy(strbuf+sizeof(dyld_insert_libs)-1+1, dylibs, sizeof(dylibs));
+        memcpy(strbuf + sizeof(dyld_insert_libs) - 1, &eqBuf, 1);
+        memcpy(strbuf + sizeof(dyld_insert_libs), launchdhook_dylib, sizeof(launchdhook_dylib));
+        if(use_cfprefsd_hook)
+        {
+            memcpy(strbuf + sizeof(dyld_insert_libs) + sizeof(launchdhook_dylib) - 1, &colonBuf, 1);
+            memcpy(strbuf + sizeof(dyld_insert_libs) + sizeof(launchdhook_dylib), brinjector_dylib, sizeof(brinjector_dylib));
+        }
         
         err = execve(argv[0], argv, envp);
     }
+    
     
     if (err)
     {
