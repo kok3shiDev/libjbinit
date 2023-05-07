@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <bakera1n/path.h>
+#include <bakera1n/bakera1n_flag.h>
 
 // syscalls
 #define    SYS_exit           1
@@ -70,27 +71,6 @@
 
 #define MOUNT_WITH_SNAPSHOT                 (0)
 #define MOUNT_WITHOUT_SNAPSHOT              (1)
-
-// pongoOS
-#define checkrain_option_none               0x00000000
-#define checkrain_option_all                0x7fffffff
-#define checkrain_option_failure            0x80000000
-
-#define checkrain_option_safemode           (1 << 0)
-#define checkrain_option_bind_mount         (1 << 1)
-#define checkrain_option_overlay            (1 << 2)
-#define checkrain_option_force_revert       (1 << 7) /* keep this at 7 */
-//#define checkrain_option_rootfull         (1 << 8)
-//#define checkrain_option_not_snapshot     (1 << 9)
-
-typedef uint32_t checkrain_option_t, *checkrain_option_p;
-
-struct kerninfo {
-    uint64_t size;
-    uint64_t base;
-    uint64_t slide;
-    checkrain_option_t flags;
-};
 
 typedef uint32_t kern_return_t;
 typedef uint32_t mach_port_t;
