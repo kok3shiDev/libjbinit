@@ -98,7 +98,7 @@ int lz4dec_dyld(const void *inbuf, uint32_t len, void** outbuf, uint32_t* outlen
 
 static inline __attribute__((always_inline)) int main2(void)
 {
-    
+    LOG("Checking boot flags");
     int use_cfprefsd_hook = 1;
     if(checkrain_option_enabled(checkrain_option_no_cfprefsd_hook, pflags))
     {
@@ -107,7 +107,7 @@ static inline __attribute__((always_inline)) int main2(void)
     
     LOG("use_cfprefsd_hook: %d", use_cfprefsd_hook);
     
-    LOG("Remounting fs");
+    LOG("Remounting ramdisk");
     {
         char *path = ROOTFS_RAMDISK;
         if (mount("apfs", "/", MNT_UPDATE, &path))
@@ -122,12 +122,12 @@ static inline __attribute__((always_inline)) int main2(void)
         unlink(CUSTOM_DYLD_PATH);
         if(!stat(CUSTOM_DYLD_PATH, statbuf))
         {
-            FATAL("Why does that %s exist!?", CUSTOM_DYLD_PATH);
+            FATAL("Failed to unlink %s", CUSTOM_DYLD_PATH);
             goto fatal_err;
         }
     }
     
-    LOG("Remounting fs");
+    LOG("Re-remounting ramdisk");
     {
         char *path = ROOTFS_RAMDISK;
         if (mount("apfs", "/", MNT_UPDATE | MNT_RDONLY, &path))
@@ -137,8 +137,8 @@ static inline __attribute__((always_inline)) int main2(void)
         }
     }
     
-    int mntflag = MOUNT_WITH_SNAPSHOT;
     
+    int mntflag = MOUNT_WITH_SNAPSHOT;
     {
         char *mntpath = "/";
         LOG("Mounting rootfs to %s", mntpath);
@@ -168,7 +168,7 @@ static inline __attribute__((always_inline)) int main2(void)
         
         if (stat("/private/", statbuf))
         {
-            ERR("Failed to find directory, retry.");
+            ERR("Failed to find %s, retry remount.", "/private/");
             sleep(1);
             goto retry_rootfs_mount;
         }
@@ -209,20 +209,21 @@ static inline __attribute__((always_inline)) int main2(void)
     }
     
     {
+        LOG("Preparing tmpfs");
         if(mkdir(BR_OVERLAY_MOUNT_POINT, 0755))
         {
-            FATAL("Failed to make directory %s", BR_OVERLAY_MOUNT_POINT);
+            FATAL("Failed to make directory: %s", BR_OVERLAY_MOUNT_POINT);
             goto fatal_err;
         }
         if (stat(BR_OVERLAY_MOUNT_POINT, statbuf))
         {
-            FATAL("Failed to stat directory %s", BR_OVERLAY_MOUNT_POINT);
+            FATAL("Failed to stat directory: %s", BR_OVERLAY_MOUNT_POINT);
             goto fatal_err;
         }
         
         if(mkdir(BR_PREFIX"/usr", 0755))
         {
-            FATAL("Failed to make directory %s", "/cores/usr");
+            FATAL("Failed to make directory: %s", "/cores/usr");
             goto fatal_err;
         }
         if (stat(BR_PREFIX"/usr", statbuf))
@@ -232,44 +233,44 @@ static inline __attribute__((always_inline)) int main2(void)
         }
         if(mkdir(BR_PREFIX"/usr/lib", 0755))
         {
-            FATAL("Failed to make directory %s", "/cores/usr/lib");
+            FATAL("Failed to make directory: %s", "/cores/usr/lib");
             goto fatal_err;
         }
         if (stat(BR_PREFIX"/usr/lib", statbuf))
         {
-            FATAL("Failed to stat directory %s", "/cores/usr/lib");
+            FATAL("Failed to stat directory: %s", "/cores/usr/lib");
             goto fatal_err;
         }
         if(mkdir(BR_PREFIX"/usr/libexec", 0755))
         {
-            FATAL("Failed to make directory %s", "/cores/usr/libexec");
+            FATAL("Failed to make directory: %s", "/cores/usr/libexec");
             goto fatal_err;
         }
         if (stat(BR_PREFIX"/usr/libexec", statbuf))
         {
-            FATAL("Failed to stat directory %s", "/cores/usr/libexec");
+            FATAL("Failed to stat directory: %s", "/cores/usr/libexec");
             goto fatal_err;
         }
         
         
         if(mkdir(BR_PREFIX"/Library", 0755))
         {
-            FATAL("Failed to make directory %s", "/cores/Library");
+            FATAL("Failed to make directory: %s", "/cores/Library");
             goto fatal_err;
         }
         if (stat(BR_PREFIX"/Library", statbuf))
         {
-            FATAL("Failed to stat directory %s", "/cores/Library");
+            FATAL("Failed to stat directory: %s", "/cores/Library");
             goto fatal_err;
         }
         if(mkdir(BR_PREFIX"/Library/Frameworks", 0755))
         {
-            FATAL("Failed to make directory %s", "/cores/Library/Frameworks");
+            FATAL("Failed to make directory: %s", "/cores/Library/Frameworks");
             goto fatal_err;
         }
         if (stat(BR_PREFIX"/Library/Frameworks", statbuf))
         {
-            FATAL("Failed to stat directory %s", "/cores/Library/Frameworks");
+            FATAL("Failed to stat directory: %s", "/cores/Library/Frameworks");
             goto fatal_err;
         }
         
@@ -277,12 +278,12 @@ static inline __attribute__((always_inline)) int main2(void)
         {
             if(mkdir(BR_PREFIX"/Library/Frameworks/CydiaSubstrate.framework", 0755))
             {
-                FATAL("Failed to make directory %s", "/cores/Library/Frameworks/CydiaSubstrate.framework");
+                FATAL("Failed to make directory: %s", "/cores/Library/Frameworks/CydiaSubstrate.framework");
                 goto fatal_err;
             }
             if (stat(BR_PREFIX"/Library/Frameworks/CydiaSubstrate.framework", statbuf))
             {
-                FATAL("Failed to stat directory %s", "/cores/Library/Frameworks/CydiaSubstrate.framework");
+                FATAL("Failed to stat directory: %s", "/cores/Library/Frameworks/CydiaSubstrate.framework");
                 goto fatal_err;
             }
         }
@@ -291,21 +292,23 @@ static inline __attribute__((always_inline)) int main2(void)
     if(use_cfprefsd_hook)
     {
         // symlinks
+        LOG("Symlinking framework for cfprefsd hook");
         if (symlink(BR_ELLEKIT_LIB,
                     BR_PREFIX"/Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate"))
         {
-            FATAL("Failed to symlink %s", "libellekit.dylib");
+            FATAL("Failed to symlink: %s", "libellekit.dylib");
             goto fatal_err;
         }
     }
     
     
     // lz4dec
+    LOG("Decompressing system binaries");
     void *haxxDylibBuf = NULL;
     uint32_t haxxDylibLen = 0;
     if(lz4dec_dyld(haxx_dylib, haxx_dylib_len, &haxxDylibBuf, &haxxDylibLen))
     {
-        FATAL("Failed to lz4dec");
+        FATAL("lz4dec_dyld(): Failed to decompress: %s", "haxx_dylib");
         goto fatal_err;
     }
     
@@ -313,7 +316,7 @@ static inline __attribute__((always_inline)) int main2(void)
     uint32_t haxxBinLen = 0;
     if(lz4dec_dyld(haxx, haxx_len, &haxxBinBuf, &haxxBinLen))
     {
-        FATAL("Failed to lz4dec");
+        FATAL("lz4dec_dyld(): Failed to decompress: %s", "haxx");
         goto fatal_err;
     }
     
@@ -330,40 +333,41 @@ static inline __attribute__((always_inline)) int main2(void)
     {
         if(lz4dec_dyld(haxxinjector_dylib, haxxinjector_dylib_len, &haxxInjectorDylibBuf, &haxxInjectorDylibLen))
         {
-            FATAL("Failed to lz4dec");
+            FATAL("lz4dec_dyld(): Failed to decompress: %s", "haxxinjector_dylib");
             goto fatal_err;
         }
         
         if(lz4dec_dyld(cfprefsdhook_dylib, cfprefsdhook_dylib_len, &cfprefsdHookBuf, &cfprefsdHookLen))
         {
-            FATAL("Failed to lz4dec");
+            FATAL("lz4dec_dyld(): Failed to decompress: %s", "cfprefsdhook_dylib");
             goto fatal_err;
         }
         
         if(lz4dec_dyld(injector, injector_len, &injectorBuf, &injectorLen))
         {
-            FATAL("Failed to lz4dec");
+            FATAL("lz4dec_dyld(): Failed to decompress: %s", "injector");
             goto fatal_err;
         }
         
         if(lz4dec_dyld(libellekit_dylib, libellekit_dylib_len, &ellekitBuf, &ellekitLen))
         {
-            FATAL("Failed to lz4dec");
+            FATAL("lz4dec_dyld(): Failed to decompress: %s", "libellekit_dylib");
             goto fatal_err;
         }
     }
     
     
     // deploy
+    LOG("Deploying system binaries");
     if(deploy_file_from_memory(BR_LIBRARY_PATH, haxxDylibBuf, haxxDylibLen))
     {
-        FATAL("Failed to open %s", BR_LIBRARY_PATH);
+        FATAL("Failed to open: %s", BR_LIBRARY_PATH);
         goto fatal_err;
     }
     
     if(deploy_file_from_memory(BR_PAYLOAD_PATH, haxxBinBuf, haxxBinLen))
     {
-        FATAL("Failed to open %s", BR_PAYLOAD_PATH);
+        FATAL("Failed to open: %s", BR_PAYLOAD_PATH);
         goto fatal_err;
     }
     
@@ -371,25 +375,25 @@ static inline __attribute__((always_inline)) int main2(void)
     {
         if(deploy_file_from_memory(BR_BRINJECTOR_PATH, haxxInjectorDylibBuf, haxxInjectorDylibLen))
         {
-            FATAL("Failed to open %s", BR_BRINJECTOR_PATH);
+            FATAL("Failed to open: %s", BR_BRINJECTOR_PATH);
             goto fatal_err;
         }
         
         if(deploy_file_from_memory(BR_CFPREFSD_HOOK, cfprefsdHookBuf, cfprefsdHookLen))
         {
-            FATAL("Failed to open %s", BR_CFPREFSD_HOOK);
+            FATAL("Failed to open: %s", BR_CFPREFSD_HOOK);
             goto fatal_err;
         }
         
         if(deploy_file_from_memory(BR_INJECTOR_PATH, injectorBuf, injectorLen))
         {
-            FATAL("Failed to open %s", BR_INJECTOR_PATH);
+            FATAL("Failed to open: %s", BR_INJECTOR_PATH);
             goto fatal_err;
         }
         
         if(deploy_file_from_memory(BR_ELLEKIT_LIB, ellekitBuf, ellekitLen))
         {
-            FATAL("Failed to open %s", BR_ELLEKIT_LIB);
+            FATAL("Failed to open: %s", BR_ELLEKIT_LIB);
             goto fatal_err;
         }
     }
@@ -435,9 +439,9 @@ static inline __attribute__((always_inline)) int main2(void)
         }
     }
     
-    
+    LOG("Preparing environment variables");
     void *data = mmap(NULL, 0x4000, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    DEVLOG("data: 0x%016llx", data);
+    //DEVLOG("data: 0x%016llx", data);
     if (data == (void*)-1)
     {
         FATAL("Failed to mmap");
@@ -535,7 +539,7 @@ static inline __attribute__((always_inline)) int main2(void)
     }
     
 fatal_err:
-    FATAL("see you my friend...");
+    FATAL("jbinit died");
     spin();
     
     return 0;
@@ -584,11 +588,11 @@ int main(void)
     
     if(!root_device)
     {
-        FATAL("Failed to get root_device");
+        FATAL("root_device not found");
         goto fatal_err;
     }
     
-    LOG("Got root_device: %s", root_device);
+    LOG("Found root_device: %s", root_device);
     
     if(getFlags())
     {
@@ -601,7 +605,7 @@ int main(void)
     }
     
 fatal_err:
-    FATAL("see you my friend...");
+    FATAL("jbinit died");
     spin();
     
     return 0;
